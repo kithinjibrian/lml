@@ -1,0 +1,28 @@
+Document          ::= ElementList? <EOF>
+
+ElementList       ::= Element+
+
+Element           ::= String 
+                    | Identifier AttributeBlock? ElementBody?
+
+ElementBody       ::= BlockBody
+                    | InlineBody
+
+BlockBody         ::= "{" ElementList? ("}" | EOF)
+
+InlineBody        ::= String
+                    | "<" ElementList (">" | EOF)
+
+AttributeBlock    ::= "[" AttributeList ("]" | EOF)
+
+AttributeList     ::= Attribute ("," Attribute)*
+
+Attribute         ::= EOF
+                    | Identifier value
+
+value              ::= EOF
+                    | "=" Constant
+
+Constant          ::= Number
+                    | String
+                    | EOF

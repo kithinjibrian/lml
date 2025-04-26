@@ -1,0 +1,74 @@
+column{
+    h1{ "What is Lorem Ipsum?" }
+
+    p{
+        b"Lorem Ipsum"
+        span[color="red"]<<
+        "is simply dummy text of the"i"printing and typesetting industry."
+        span>>
+    }
+
+    p{
+        // An inline button
+        "This is a"button"Click me""button in a paragraph."
+    }
+
+    // A block button
+    button[onclick="alert(90)"]{ "Click me" }
+
+    // an input
+    input[type="text"]{}
+
+    // a form
+    form[onsubmit="submit()"]{
+        p{ "Enter your email" }
+        input[type="text"]{}
+        row{
+            button"submit"
+            button"cancel"
+        }
+    }
+
+    p{ "This is a"link[href="https://a.com"]"link"}
+
+    p{
+        b"Bold text"
+        i"Italic text"
+        u"Underlined text"
+        image[src="https://via.placeholder.com/600x300"]""
+    }
+
+    image[src="https://via.placeholder.com/600x300"]{}
+
+    code[lang="c"]{
+// (`) for multi-line string
+`
+int main() {
+    return 0;
+}
+`
+    }
+
+    row{
+        column{
+            p{ "Left Panel" }
+            button"Option A"
+        }
+        column{
+            p{ "Right Panel" }
+            button"Option B"
+        }
+    }
+
+    ol{
+        li{ "Apple" }
+        li{ "Mango" }
+    }
+
+    p{ "Unordered list" }
+
+    ul{
+        li{ "Apple" }
+        li{ "Mango" }
+    }
+}
