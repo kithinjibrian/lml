@@ -2,7 +2,7 @@ import { Lexer, Lml, Parser } from "./type";
 
 export * from "./type"
 
-export function lml(code: string) {
+export async function lml(code: string) {
     try {
         let lexer = new Lexer(code);
         let tokens = lexer.tokenize();
@@ -11,7 +11,7 @@ export function lml(code: string) {
         let ast = parser.parse();
 
         let lml_ast = new Lml(ast)
-        return lml_ast.run()
+        return await lml_ast.run()
     } catch (error: any) {
         throw error;
     }
@@ -19,13 +19,15 @@ export function lml(code: string) {
 
 if (require.main == module) {
     try {
-        const ast = lml(
+        lml(
             `
-p { "hello"b-"brian" }
+p { "men"span<"women""children"> }
 `
-        );
+        )
+            .then((ast) => {
+                console.log(JSON.stringify(ast, null, 2));
+            });
 
-        console.log(JSON.stringify(ast, null, 2));
 
     } catch (e) {
         console.log(e);

@@ -34,11 +34,15 @@ import {
     NoSpaceNode,
     OlNode,
     ParagraphNode,
+    ScriptNode,
     SinkholeNode,
     UlNode
 } from "./ast";
 
+import { builtin } from "../builtin";
+
 export class Lml implements ASTVisitor {
+    private scripts: string[] = [];
     private extensions: Extension<any>[] = [];
 
     constructor(
@@ -71,8 +75,24 @@ export class Lml implements ASTVisitor {
         this.extensions.forEach(extension => extension.afterAccept?.(node, this, args));
     }
 
-    run() {
-        return this.visit(this.ast);
+    async run() {
+        const ast = this.visit(this.ast);
+
+        // builtin["__ast__"] = {
+        //     type: "function",
+        //     signature: "",
+        //     exec: (args: any[]) => {
+        //         return ast;
+        //     }
+        // }
+
+        // for (const scripts of this.scripts) {
+        //     await exec_node({
+        //         code: scripts
+        //     })
+        // }
+
+        return ast;
     }
 
     visitDocument(
@@ -98,8 +118,6 @@ export class Lml implements ASTVisitor {
         let attributes = this.visit(node.attributes);
         let body = this.visit(node.body)
 
-        let no_space = node.no_space;
-
         switch (name) {
             case "p":
                 return new ParagraphNode(attributes, body);
@@ -116,11 +134,11 @@ export class Lml implements ASTVisitor {
             case "h6":
                 return new H6Node(attributes, body);
             case "c":
-                return new CNode(no_space, attributes, body);
+                return new CNode(attributes, body);
             case "b":
-                return new BNode(no_space, attributes, body);
+                return new BNode(attributes, body);
             case "i":
-                return new INode(no_space, attributes, body);
+                return new INode(attributes, body);
             case "ol":
                 return new OlNode(attributes, body);
             case "ul":
@@ -143,6 +161,13 @@ export class Lml implements ASTVisitor {
                 return new CodeNode(attributes, body);
             case "ns":
                 return new NoSpaceNode(attributes, body);
+            case "script": {
+                for (const src of (body as BlockNode).body) {
+                    const script = (src as StringNode).value;
+                    this.scripts.push(script);
+                }
+                return new ScriptNode(attributes, body);
+            }
         }
 
         return new SinkholeNode(

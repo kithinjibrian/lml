@@ -86,7 +86,6 @@ export class ElementNode extends ASTNodeBase {
 
     constructor(
         public identifier: ASTNode,
-        public no_space: boolean = false,
         public attributes?: ASTNode,
         public body?: ASTNode
     ) {

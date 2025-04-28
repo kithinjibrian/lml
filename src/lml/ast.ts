@@ -5,6 +5,7 @@ export interface LmlASTVisitor extends ASTVisitor {
     visitColumn?(node: ColumnNode, args?: Record<string, any>): any;
     visitRow?(node: RowNode, args?: Record<string, any>): any;
     visitCode?(node: CodeNode, args?: Record<string, any>): any;
+    visitScript?(node: ScriptNode, args?: Record<string, any>): any;
     visitH1?(node: H1Node, args?: Record<string, any>): any;
     visitH2?(node: H2Node, args?: Record<string, any>): any;
     visitH3?(node: H3Node, args?: Record<string, any>): any;
@@ -108,6 +109,21 @@ export class CodeNode extends LmlASTNodeBase {
     }
 }
 
+export class ScriptNode extends LmlASTNodeBase {
+    type = 'script';
+
+    constructor(
+        attributes?: ASTNode,
+        body?: ASTNode
+    ) {
+        super(attributes, body);
+    }
+
+    _accept(visitor: LmlASTVisitor, args?: Record<string, any>): void {
+        return visitor.visitScript?.(this, args);
+    }
+}
+
 export class H1Node extends LmlASTNodeBase {
     type = 'h1';
 
@@ -185,7 +201,6 @@ export class CNode extends LmlASTNodeBase {
     type = 'c';
 
     constructor(
-        public no_space: boolean = false,
         attributes?: ASTNode,
         body?: ASTNode
     ) {
@@ -201,7 +216,6 @@ export class BNode extends LmlASTNodeBase {
     type = 'b';
 
     constructor(
-        public no_space: boolean = false,
         attributes?: ASTNode,
         body?: ASTNode
     ) {
@@ -217,7 +231,6 @@ export class INode extends LmlASTNodeBase {
     type = 'i';
 
     constructor(
-        public no_space: boolean = false,
         attributes?: ASTNode,
         body?: ASTNode
     ) {

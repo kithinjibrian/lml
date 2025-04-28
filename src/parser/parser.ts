@@ -103,17 +103,11 @@ ${message} at line ${token.line}, column ${token.column}
         const identifer = this.identifier();
         let attributes = undefined;
 
-        let no_space = false;
-
-        if (this.match(TokenType.Minus)) {
-            no_space = true;
-        }
-
         if (this.check(TokenType.LeftBracket)) {
             attributes = this.attribute_block();
         }
 
-        return new ElementNode(identifer, no_space, attributes, this.element_body())
+        return new ElementNode(identifer, attributes, this.element_body())
     }
 
     // AttributeBlock    ::= "[" AttributeList ("]" | EOF)
@@ -198,40 +192,68 @@ ${message} at line ${token.line}, column ${token.column}
         return body
     }
 
+    private parse_sequence(
+        end_token: TokenType,
+        closing_error_message: string
+    ): ASTNode[] {
+        const nodes: ASTNode[] = [];
+        let prev: ASTNode | null = null;
+        let skip_space = false;
+
+        while (!this.check(end_token) && !this.is_at_end()) {
+            if (this.match(TokenType.Minus)) {
+                skip_space = true;
+                continue;
+            }
+
+            const curr = this.element();
+
+            if (prev && this.should_insert_space(prev, curr) && !skip_space) {
+                if (prev instanceof StringNode) {
+                    prev.value += " ";
+                } else {
+                    const spaceNode = new StringNode(" ");
+                    nodes.push(spaceNode);
+                    prev = spaceNode;
+                }
+            }
+
+            if (prev instanceof StringNode && curr instanceof StringNode) {
+                prev.value += curr.value;
+            } else {
+                nodes.push(curr);
+                prev = curr;
+            }
+
+            skip_space = false;
+        }
+
+        if (!this.match(end_token)) {
+            if (!this.check(TokenType.EOF))
+                this.error(closing_error_message);
+        }
+
+        return nodes;
+    }
+
     // BlockBody         ::= "{" ElementList? ("}" | EOF)
     private block(): ASTNode {
-        const block: ASTNode[] = [];
-
-        // Expect opening brace
         if (!this.match(TokenType.LeftBrace)) {
             this.error("Expected '{' before block body");
         }
 
-        let prev: ASTNode | null = null;
+        const body = this.parse_sequence(
+            TokenType.RightBrace,
+            "Expected '}' after block body"
+        );
 
-        while (!this.check(TokenType.RightBrace) && !this.is_at_end()) {
-            const curr = this.element();
+        return new BlockNode(body);
+    }
 
-            if (
-                prev &&
-                prev instanceof StringNode &&
-                curr instanceof StringNode
-            ) {
-                block.push(new StringNode(" "))
-            }
-
-            block.push(curr);
-
-            prev = curr;
-        }
-
-        // Expect closing brace
-        if (!this.match(TokenType.RightBrace)) {
-            if (!this.check(TokenType.EOF))
-                this.error("Expected '}' after block body");
-        }
-
-        return new BlockNode(block);
+    private should_insert_space(left: ASTNode, right: ASTNode): boolean {
+        const isLeftTextual = left instanceof StringNode || left instanceof ElementNode;
+        const isRightTextual = right instanceof StringNode || right instanceof ElementNode;
+        return isLeftTextual && isRightTextual;
     }
 
     /*
@@ -248,23 +270,16 @@ ${message} at line ${token.line}, column ${token.column}
             return this.string();
         }
 
-        const inline: ASTNode[] = [];
-
         if (!this.match(TokenType.LT)) {
             this.error("Expected '<' before span body");
         }
 
-        while (!this.check(TokenType.GT) && !this.is_at_end()) {
-            inline.push(this.element());
-        }
+        const body = this.parse_sequence(
+            TokenType.GT,
+            "Expected '>' after span body"
+        );
 
-        // Expect closing >
-        if (!this.match(TokenType.GT)) {
-            if (!this.check(TokenType.EOF))
-                this.error("Expected '>' after span body");
-        }
-
-        return new SpanNode(inline)
+        return new SpanNode(body)
     }
 
     private identifier(): IdentifierNode {
